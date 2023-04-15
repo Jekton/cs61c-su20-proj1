@@ -28,11 +28,15 @@ HashTable *createHashTable(int size, unsigned int (*hashFunction)(void *),
  * we can use the string as both the key and data.
  */
 void insertData(HashTable *table, void *key, void *data) {
-  // -- TODO --
-  // HINT:
-  // 1. Find the right hash bucket location with table->hashFunction.
-  // 2. Allocate a new hash bucket struct.
-  // 3. Append to the linked list or create it if it does not yet exist. 
+  struct HashBucket *bucket = malloc(sizeof(struct HashBucket));
+  bucket->key = key;
+  bucket->data = data;
+  if (!bucket) return;
+
+  unsigned hash = table->hashFunction(key);
+  unsigned index = hash % table->size;
+  bucket->next = table->data[index];
+  table->data[index] = bucket;
 }
 
 /*
@@ -40,8 +44,14 @@ void insertData(HashTable *table, void *key, void *data) {
  * It returns NULL if the key is not found. 
  */
 void *findData(HashTable *table, void *key) {
-  // -- TODO --
-  // HINT:
-  // 1. Find the right hash bucket with table->hashFunction.
-  // 2. Walk the linked list and check for equality with table->equalFunction.
+  unsigned hash = table->hashFunction(key);
+  unsigned index = hash % table->size;
+  struct HashBucket *head = table->data[index];
+  while (head != NULL) {
+    if (table->equalFunction(head->key, key)) {
+      return head->data;
+    }
+    head = head->next;
+  }
+  return NULL;
 }

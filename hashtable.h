@@ -26,8 +26,10 @@ struct HashBucket {
 };
 
 typedef struct HashTable {
-  // -- TODO --
-  // HINT: Take a look at createHashTable.
+  struct HashBucket **data;
+  int size;
+  unsigned int (*hashFunction)(void *);
+  int (*equalFunction)(void *, void *);
 } HashTable;
 
 /*

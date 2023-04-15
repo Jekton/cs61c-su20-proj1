@@ -33,6 +33,8 @@
  */
 HashTable *dictionary;
 
+static void processWord(char *word);
+
 /*
  * The MAIN routine.  You can safely print debugging information
  * to standard error (stderr) as shown and it will be ignored in 
@@ -70,7 +72,12 @@ int main(int argc, char **argv) {
  */
 unsigned int stringHash(void *s) {
   char *string = (char *)s;
-  // -- TODO --
+  unsigned hash = 0;
+  int index = 0;
+  while (*string) {
+    hash += (31 ^ index) * *string++;
+  }
+  return hash;
 }
 
 /*
@@ -80,7 +87,7 @@ unsigned int stringHash(void *s) {
 int stringEquals(void *s1, void *s2) {
   char *string1 = (char *)s1;
   char *string2 = (char *)s2;
-  // -- TODO --
+  return strcmp(string1, string2) == 0;
 }
 
 /*
@@ -100,7 +107,22 @@ int stringEquals(void *s1, void *s2) {
  * arbitrarily long dictionary chacaters.
  */
 void readDictionary(char *dictName) {
-  // -- TODO --
+  FILE *file = fopen(dictName, "r");
+  if (!file) {
+    fprintf(stderr, "Fail to open %s\n", dictName);
+    exit(1);
+  }
+  char line[1024];
+  char *str;
+  while ((str = fgets(line, sizeof(line), file)) != NULL) {
+      int size = strlen(str);
+      if (size <= 1) continue;
+      char *word = malloc(size);
+      strncpy(word, str, size - 1);
+      word[size - 1] = '\0';
+      insertData(dictionary, word, word);
+  }
+  fclose(file);
 }
 
 /*
@@ -125,5 +147,44 @@ void readDictionary(char *dictName) {
  * final 20% of your grade, you cannot assume words have a bounded length.
  */
 void processInput() {
-  // -- TODO --
+  char word[60];
+  int index = 0;
+  char ch;
+  while ((ch = getchar())) {
+    if (isalpha(ch)) {
+      word[index++] = ch;
+    } else {
+      if (index > 0) {
+        word[index] = '\0';
+        processWord(word);
+        index = 0;
+      }
+      if (ch == EOF) break;
+      else putchar(ch);
+    }
+  }
+}
+
+static void processWord(char *word) {
+  printf("%s", word);
+  if (findData(dictionary, word)) {
+    return;
+  }
+
+  // The word with all but the first letter converted to lowercase.
+  char *str = word + 1;
+  while (*str) {
+    *str = tolower(*str);
+    ++str;
+  }
+  if (findData(dictionary, word)) {
+    return;
+  }
+
+  // The word converted entirely to lowercase letters
+  *word = tolower(*word);
+  if (findData(dictionary, word)) {
+    return;
+  }
+  printf(" [sic]");
 }
